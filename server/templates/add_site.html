@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <script src="/static/Plugin/jquery-3.5.1.js"></script>
+    <title>Add new site</title>
+</head>
+<body onload="compatibility_prompt()">
+    <p style="text-align: right; font-size: 80%" id="compatibility_prompt"></p>
+    <h1 style="text-align: center">Add new site</h1>
+    <table class="subject" id="add_new_content_table" style="margin:0 auto" border="1">
+        <tr>
+            <td colspan="4">current time：{{ current_time }}</td>
+            <td style="text-align: center">
+                <a href="/setting">返回</a>
+            </td>
+            <td style="text-align: center">
+                <a href="/logout">退出登录</a>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="4">{{ current_department }}：{{ current_user }}</td>
+            <td colspan="2" style="text-align: center"><a href="javascript:void(0)" onclick="return submit()">提交</a></td>
+        </tr>
+        <tr>
+            <td style="width: 150px; text-align: center">Name</td>
+            <td style="width: 150px; text-align: center">Serial number</td>
+            <td style="width: 300px; text-align: center">URL</td>
+            <td style="width: 150px; text-align: center">Origins_permission</td>
+            <td style="width: 150px; text-align: center">Remark</td>
+            <td style="width: 100px; text-align: center">Option</td>
+        </tr>
+        <tr class="modify_content" id="1">
+            <td><textarea name="new_site_name" style="width: 150px; resize: none"></textarea></td>
+            <td><textarea name="new_site_serial" style="width: 150px; resize: none"></textarea></td>
+            <td><textarea name="new_site_url" style="width: 300px; resize: none"></textarea></td>
+            <td style="text-align: center"><input type="checkbox" name="new_site_origins"/></td>
+            <td><textarea name="new_site_remark" style="width: 150px; resize: none"></textarea></td>
+            <td style="text-align: center"><a href="javascript:void(0)" onclick="del_list('1')">删除</a></td>
+        </tr>
+        <tr class="add_content" id="2">
+            <td colspan="6"><a href="javascript:void(0)" onclick="add_list(document.getElementsByClassName
+            ('add_content')[0].id)">添加</a></td>
+        </tr>
+    </table>
+    <script type="text/javascript">
+        function add_list(id) {
+            let node_list = document.getElementById(id);
+            let add_new_name = "<td><textarea name=\"new_site_name\" style=\"width: 150px; resize: none\"></textarea></td>";
+            let add_new_serial = "<td><textarea name=\"new_site_serial\" style=\"width: 150px; resize: none\"></textarea></td>";
+            let add_new_url = "<td><textarea name=\"new_site_url\" style=\"width: 300px; resize: none\"></textarea></td>";
+            let add_new_origins = "<td style=\"text-align: center\"><input name=\"new_site_origins\" type=\"checkbox\"/></td>";
+            let add_new_remark = "<td><textarea name=\"new_site_remark\" style=\"width: 150px; resize: none\"></textarea></td>";
+            let next_add_function = "<td colspan=\"6\"><a href=\"javascript:void(0)\" onclick=" +
+                "\"add_list(document.getElementsByClassName\n ('add_content')[0].id)\">添加</a></td>\n";
+            node_list.innerHTML = add_new_name + add_new_serial + add_new_url + add_new_origins + add_new_remark +
+                "<td style=\"text-align: center\"><a href=\"javascript:void(0)\" onclick=\"del_list(" + id + ")\">删除</a></td>";
+            node_list.className = "modify_content";
+            let new_line = document.getElementById("add_new_content_table").children[0].appendChild(document.createElement("tr"));
+            new_line.className = "add_content";
+            new_line.id = (Number(id) + 1).toString();
+            new_line.innerHTML = next_add_function;
+        }
+        function del_list(id) {
+            if (check_IE()) {
+                document.getElementById(id).removeNode(true);
+            }
+            else {
+                document.getElementById(id).remove();
+            }
+        }
+        function submit() {
+            let modify_class = document.getElementsByClassName("modify_content");
+            let form_data = [];
+            for(let i = 0; i < modify_class.length; i++) {
+                let site_name = modify_class[i].children[0].children[0].value;
+                if (site_name === "") {
+                    alert("Name must not empty");
+                    return false;
+                }
+                let site_serial_number = modify_class[i].children[1].children[0].value;
+                if (site_serial_number === "") {
+                    alert("Serial number must not empty");
+                    return false;
+                }
+                let site_url = modify_class[i].children[2].children[0].value;
+                if (site_url === "") {
+                    alert("URL must not empty");
+                    return false;
+                }
+                let site_origins_permission = modify_class[i].children[3].children[0].checked;
+                let origins_permission;
+                if (site_origins_permission === true) {
+                    origins_permission = 1;
+                }
+                else {
+                    origins_permission = 0;
+                }
+                let site_remark = modify_class[i].children[4].children[0].value;
+                form_data.push(
+                    {
+                        "site_name": site_name,
+                        "serial_number": site_serial_number,
+                        "url": site_url,
+                        "origins_permission": origins_permission,
+                        "remark": site_remark
+                    }
+                );
+            }
+            $.ajax({
+                type: "POST",
+                url: "/add_new_site",
+                contentType: "application/json",
+                data: JSON.stringify(form_data),
+                success: function (data) {
+                    if (data.status === 200) {
+                        alert(data.message);
+                        window.location.href = data.url;
+                    }
+                    else {
+                        alert(data.message);
+                    }
+                },
+                error: function (data) {
+                    alert(data);
+                },
+            })
+        }
+        function check_IE() {
+            return window.navigator.userAgent.indexOf('Trident') > 0 || window.navigator.userAgent.indexOf('MSIE ') > 0;
+        }
+        function compatibility_prompt() {
+            if (check_IE()) {
+                document.getElementById("compatibility_prompt").innerText = "当前页面处于IE兼容模式，" +
+                    "建议将浏览器切换为极速模式或更换\nChrome浏览器访问，避免出现兼容问题以达到最佳访问效果";
+            }
+        }
+    </script>
+</body>
+</html>

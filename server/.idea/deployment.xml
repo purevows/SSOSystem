@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="PublishConfigData">
+    <serverData>
+      <paths name="gzlujiantao@192.168.4.253:22">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/home/gzlujiantao/gddci_server/SSOSystem/server" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
+    </serverData>
+  </component>
+</project>

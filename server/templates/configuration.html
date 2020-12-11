@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <script src="/static/Plugin/jquery-3.5.1.js"></script>
+    <title>Site Configuration</title>
+</head>
+<body onload="compatibility_prompt()">
+    <p style="text-align: right; font-size: 80%" id="compatibility_prompt"></p>
+    <h1 style="text-align: center">Site Configuration</h1>
+    <table class="subject" id="main_table" style="margin:0 auto" border="1">
+        <tr>
+            <td colspan="4">{{ current_department }}：{{ current_user }}</td>
+            <td colspan="2" style="text-align: center"><a href="/clear_session">退出登录</a></td>
+        </tr>
+        <tr>
+            <td colspan="4">Current time：{{ current_time }}</td>
+            <td colspan="2" style="text-align: center"><a href="/add_site">Add new site</a></td>
+        </tr>
+        <tr>
+            <td style="width: 150px; word-break: break-all; word-wrap: break-word; text-align: center">Name</td>
+            <td style="width: 150px; word-break: break-all; word-wrap: break-word; text-align: center">Serial number</td>
+            <td style="width: 400px; word-break: break-all; word-wrap: break-word; text-align: center">URL</td>
+            <td style="width: 150px; word-break: break-all; word-wrap: break-word; text-align: center">Origins_permission</td>
+            <td style="width: 150px; word-break: break-all; word-wrap: break-word; text-align: center">Remark</td>
+            <td style="width: 100px; word-break: break-all; word-wrap: break-word; text-align: center">Option</td>
+        </tr>
+        {%- for item in item_list -%}
+            <tr class="item_list" id="{{ loop.index }}">
+                <td style="width: 150px; word-break: break-all; word-wrap: break-word; text-align: center">
+                    {{ item.get("site_name") | safe}}
+                </td>
+                <td style="width: 150px; word-break: break-all; word-wrap: break-word">
+                    {{ item.get("serial_number") | safe }}
+                </td>
+                <td style="width: 400px; word-break: break-all; word-wrap: break-word">
+                    {{ item.get("url") | safe }}
+                </td>
+                <td style="width: 150px; word-break: break-all; word-wrap: break-word">
+                    {%- if item.get("origins_permission") == 1 -%}
+                        True
+                    {%- else -%}
+                        False
+                    {%- endif -%}
+                </td>
+                <td style="width: 150px; word-break: break-all; word-wrap: break-word">
+                    {{ item.get("remark") | safe}}
+                </td>
+                <td style="width: 100px; word-break: break-all; word-wrap: break-word; text-align: center">
+                    <a href="javascript:void(0)" onclick="modify_text('{{ loop.index }}')">修改</a>
+                    <a href="javascript:void(0)" onclick="delete_content('{{ loop.index }}')">删除</a>
+                </td>
+                <td hidden>{{ item.get("id") }}</td>
+            </tr>
+        {%- endfor -%}
+    </table>
+    <script type="text/javascript">
+        function modify_text(id) {
+            if (document.querySelector("textarea") !== null) {
+                return alert("Please don't modify several contents at the same time")
+            }
+            let modify_node_list = document.getElementById(id);
+            let modify_click_function = modify_node_list.children[5];
+            let modify_site_name = modify_node_list.children[0];
+            let modify_site_serial = modify_node_list.children[1];
+            let modify_site_url = modify_node_list.children[2];
+            let modify_site_origins = modify_node_list.children[3];
+            let modify_site_remark = modify_node_list.children[4];
+            let site_name_content = modify_site_name.innerText;
+            let site_serial_content = modify_site_serial.innerText;
+            let site_url_content = modify_site_url.innerText;
+            let site_origins_option = modify_site_origins.innerText;
+            let site_remark_content = modify_site_remark.innerText;
+            let insert_name_textarea = "<textarea name='modify_site_name" + id.toString() +
+                "' style='resize: none; width: 150px'>" + site_name_content + "</textarea>";
+            let insert_serial_textarea = "<textarea name='modify_site_serial" + id.toString() +
+                "' style='resize: none; width: 150px'>" + site_serial_content + "</textarea>";
+            let insert_url_textarea = "<textarea name='modify_site_url" + id.toString() +
+                "' style='resize: none; width: 400px'>" + site_url_content + "</textarea>";
+            let insert_origins_option;
+            if (site_origins_option === "True") {
+                insert_origins_option = "<input type='checkbox' name='modify_site_origins" +
+                id.toString() +"' style='width: 150px' checked='checked'/>";
+            }
+            else {
+                insert_origins_option = "<input type='checkbox' name='modify_site_origins" +
+                id.toString() + "' style='width: 150px'/>";
+            }
+            let insert_remark_textarea = "<textarea name='modify_site_remark" + id.toString() +
+                "' style='resize: none; width: 150px'>" + site_remark_content + "</textarea>";
+            let insert_modify_function = "<a href='javascript:void(0)' onclick='submit_modify(" + id.toString() +
+                ")'>提交</a>  " + "<a href='javascript:void(0)' onclick='cancel_modify(" + id.toString() + ")'>取消</a>";
+            modify_site_name.innerHTML = insert_name_textarea;
+            modify_site_serial.innerHTML = insert_serial_textarea;
+            modify_site_url.innerHTML = insert_url_textarea;
+            modify_site_origins.innerHTML = insert_origins_option;
+            modify_site_remark.innerHTML = insert_remark_textarea;
+            modify_click_function.innerHTML = insert_modify_function;
+        }
+        function cancel_modify(id) {
+            let default_name = document.getElementsByName("modify_site_name" + id.toString())[0].defaultValue;
+            let default_serial = document.getElementsByName("modify_site_serial" + id.toString())[0].defaultValue;
+            let default_url = document.getElementsByName("modify_site_url" + id.toString())[0].defaultValue;
+            let default_origins = document.getElementsByName("modify_site_origins" + id.toString())[0].defaultChecked;
+            let default_remark = document.getElementsByName("modify_site_remark" + id.toString())[0].defaultValue;
+            let default_modify_function = "<a href='javascript:void(0)' onclick='modify_text("
+                + id.toString() + ")'>修改</a>  " + "<a href='javascript:void(0)' onclick='delete_content("
+                + id.toString() + ")'>删除</a>";
+            document.getElementById(id).children[0].innerHTML = default_name;
+            document.getElementById(id).children[1].innerHTML = default_serial;
+            document.getElementById(id).children[2].innerHTML = default_url;
+            if (default_origins === true) {
+                document.getElementById(id).children[3].innerHTML = "True";
+            }
+            else {
+                document.getElementById(id).children[3].innerHTML = "False";
+            }
+            document.getElementById(id).children[4].innerHTML = default_remark;
+            document.getElementById(id).children[5].innerHTML = default_modify_function;
+        }
+        function submit_modify(id) {
+            let new_site_name = document.getElementsByName("modify_site_name" + id.toString())[0].value;
+            let new_site_serial = document.getElementsByName("modify_site_serial" + id.toString())[0].value;
+            let new_site_url = document.getElementsByName("modify_site_url" + id.toString())[0].value;
+            let new_site_origins = document.getElementsByName("modify_site_origins" + id.toString())[0].checked;
+            let site_origins;
+            if (new_site_origins === true) {
+                site_origins = 1;
+            }
+            else {
+                site_origins = 0;
+            }
+            let new_site_remark = document.getElementsByName("modify_site_remark" + id.toString())[0].value;
+            let site_id = document.getElementById(id.toString()).children[6].innerText;
+            let form_data = JSON.stringify(
+                {
+                    "id": site_id,
+                    "site_name": new_site_name,
+                    "serial_number": new_site_serial,
+                    "url": new_site_url,
+                    "origins_permission": site_origins,
+                    "remark": new_site_remark
+                }
+            );
+            $.ajax({
+                type: "POST",
+                url: "/modify",
+                contentType: "application/json",
+                data: form_data,
+                success: function (data) {
+                    if (data.status === 200) {
+                        alert(data.message);
+                        location.reload();
+                    }
+                    else {
+                        alert(data.message)
+                    }
+                },
+                error: function (data) {
+                    alert(data);
+                },
+            })
+        }
+        function delete_content(id) {
+            let site_id = document.getElementById(id.toString()).children[6].innerText;
+            let form_data = JSON.stringify({"id": site_id});
+            $.ajax({
+                type: "POST",
+                url: "/del_item",
+                contentType: "application/json",
+                data: form_data,
+                success: function (data) {
+                    if (data.status === 200) {
+                        alert(data.message);
+                        location.reload();
+                    }
+                    else {
+                        alert(data.message)
+                    }
+                },
+                error: function (data) {
+                    alert(data);
+                },
+            })
+        }
+        function check_IE() {
+            return window.navigator.userAgent.indexOf('Trident') > 0 || window.navigator.userAgent.indexOf('MSIE ') > 0;
+        }
+        function compatibility_prompt() {
+            if (check_IE()) {
+                document.getElementById("compatibility_prompt").innerText = "当前页面处于IE兼容模式，" +
+                    "建议将浏览器切换为极速模式或更换\nChrome浏览器访问，避免出现兼容问题以达到最佳访问效果";
+            }
+        }
+    </script>
+</body>
+</html>

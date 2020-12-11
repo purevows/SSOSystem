@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="/static/Plugin/md5.js"></script>
+    <!--<script src="/static/Plugin/md5.min.js"></script>-->
+    <script src="/static/Plugin/jquery-3.5.1.js"></script>
+    <meta charset="UTF-8">
+    <title>Login</title>
+</head>
+<body onkeydown="enter_login(event)" onload="compatibility_prompt()">
+    <p style="text-align: right; font-size: 80%" id="compatibility_prompt"></p>
+    <h1 style="text-align: center">登录</h1>
+    <table class="main" style="margin:0 auto">
+        <tr>
+            <td style="text-align: center; font-size: xx-large">用户名：</td>
+            <td>
+                <input id="username" name="username" type="text" style="font-size: xx-large" autofocus>
+            </td>
+        </tr>
+        <tr>
+            <td style="text-align: center; font-size: xx-large">密&nbsp&nbsp&nbsp&nbsp码：</td>
+            <td>
+                <input id="password" name="password" type="password" style="font-size: xx-large">
+            </td>
+        </tr>
+        <tr>
+            <td id="login_ret" style="text-align: center" colspan="2"></td>
+        </tr>
+        <tr>
+            <td style="text-align: center" colspan="2">
+                <button id="btn_submit" name="btn_submit" onclick="return submit_login()" style="font-size: xx-large">login</button>
+            </td>
+        </tr>
+    </table>
+    <script type="text/javascript">
+        function submit_login() {
+            let username = document.getElementById("username").value;
+            let password = document.getElementById("password").value;
+            if (username === "" || password === "") {
+                alert("用户名和密码不能为空");
+                return false;
+            }
+            let encrypt = md5(password);
+            $.ajax({
+                url: "login",
+                type: "POST",
+                contentType: "application/json",
+                data: JSON.stringify({"username": username, "password": encrypt}),
+                success: function (ret_message) {
+                    if (ret_message.retCode === 1) {
+                        window.location.href = "{{ app_server }}/{{ srv_path }}?token=" + ret_message.token;
+                        return true;
+                    }
+                    else {
+                        if (ret_message.retCode === 2) {
+                            document.getElementById("login_ret").innerText = "用户名或密码错误, 当前尝试次数：" +
+                                ret_message.limit_counts;
+                            return false;
+                        }
+                        else if (ret_message.retCode === 3) {
+                            document.getElementById("login_ret").innerText = "账户被禁用";
+                            return false;
+                        }
+                        else if (ret_message.retCode === 6) {
+                            document.getElementById("login_ret").innerText = "尝试次数过多，账号被锁定";
+                            return false;
+                        }
+                        else if (ret_message.retCode === 7) {
+                            document.getElementById("login_ret").innerText = "Server Error";
+                            return false;
+                        }
+                        else {
+                            document.getElementById("login_ret").innerText = "未知错误";
+                            return false;
+                        }
+                    }
+                },
+            });
+            return false;
+        }
+        function enter_login(event) {
+            if (event.keyCode === 13) {
+                document.getElementById("btn_submit").click();
+            }
+        }
+        function check_IE() {
+            return window.navigator.userAgent.indexOf('Trident') > 0 || window.navigator.userAgent.indexOf('MSIE ') > 0;
+        }
+        function compatibility_prompt() {
+            if (check_IE()) {
+                document.getElementById("compatibility_prompt").innerText = "当前页面处于IE兼容模式，" +
+                    "建议将浏览器切换为极速模式或更换\nChrome浏览器访问，避免出现兼容问题以达到最佳访问效果";
+            }
+        }
+    </script>
+</body>
+</html>
