@@ -2,9 +2,8 @@ from flask import Flask, request, session, jsonify, render_template, redirect
 from flask_session import Session
 from flask_cors import cross_origin
 from plugin import flask_config, logger, query_login, query_user_info, check_token, set_token, login_attempt_limit
-from plugin import set_session_expired, rc4_encrypt, rc4_decrypt, rc4_key, check_app_server, origins_list
-from plugin import create_new_item, modify_content, delete_item, query_data
-from plugin import login_required, authority_required
+from plugin import set_session_expired, rc4_encrypt, rc4_decrypt, rc4_key, login_required, authority_required
+from ssoplugin import create_new_item, modify_content, delete_item, query_data, check_app_server, origins_list
 import datetime
 import json
 

@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData">
+  <component name="PublishConfigData" serverName="192.168.4.253">
     <serverData>
-      <paths name="gzlujiantao@192.168.4.253:22">
+      <paths name="192.168.4.253">
         <serverdata>
           <mappings>
-            <mapping deploy="/home/gzlujiantao/gddci_server/SSOSystem/server" local="$PROJECT_DIR$" />
+            <mapping deploy="/gddci_server/ssosystem/server" local="$PROJECT_DIR$" web="/" />
           </mappings>
         </serverdata>
       </paths>
